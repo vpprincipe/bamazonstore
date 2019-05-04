@@ -25,15 +25,38 @@ connection.connect(function(err) {
 
   var maxResults = 0;
 
-function listProducts() {
-    connection.query('SELECT * FROM `products`', function (error, results, fields) {
-        if (error) throw error;
-        console.log("Item ID  Price($) \tProduct");
-        console.log("----------------------------------------------")
-        for (var i=0; i<results.length; i++) {
-            console.log(results[i].item_id + "\t" + results[i].price.toFixed(2) + "\t\t" + results[i].product_name);
-        }
-        promptUser();
-        maxResults = results.length;
+  function readProducts() {
+    connection.query("SELECT * FROM products", function (err, res) {
+      if (err) throw err;
+      console.log("Displaying products from " + res[0].department_name);
+      for (let i = 0; i < res.length; i++) {
+        console.log("\n" + res[i].id +
+          ". " + res[i].product_name +
+          "\nPrice: $" + res[i].price);
+      }
+      startInquirer(res);
     });
+  }
+
+  function startInquirer() {
+    inquirer.prompt([
+      {
+        type: 'input',
+        name: 'product',
+        message: "Which prooduct will you like to purchase? (Please inter product #)"
+      }
+    ]).then(function(inquirerRes){
+      let query = "UPDATE prducts SET quantity = quantity - ? WHERE id = ?";
+      connection.query(query, [inquirerRes.quantity, [inquirerRes.product - 1].ed], function (err) {
+        if (err) throw err;
+        if ([inquirerRes.product - 1].quantity <= 0 || inquirerRes.quantity > x[inquirerRes.product - 1].quantity) {
+          console.log('Insufficient quantity!');
+      }  else{
+        let total = (([inquirerRes.product - 1].price) * inquirerRes.quantity).toFixed();
+        console.log("The total of your purchase is $" + total +
+          "\nSuccessfully purchased " + inquirerRes.quantity + ' copy/copies of ' + x[inquirerRes.product - 1].product_name + '.');
+      }
+    });
+    connection.end();
+  });
 }
